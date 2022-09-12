@@ -23,15 +23,13 @@ function Init()
 	worldCatLocalForm.Form = interfaceMngr:CreateForm("WorldCat Local Search", "Script");
 
 	-- Add a browser
-	worldCatLocalForm.Browser = worldCatLocalForm.Form:CreateBrowser("WorldCat Local Search", "WorldCat Local Search Browser", "Shipments");
+	worldCatLocalForm.Browser = worldCatLocalForm.Form:CreateBrowser("WorldCat Local Search", "WorldCat Local Search Browser", "WorldCat Local Search", "Chromium");
 
 	-- Hide the text label
-	worldCatLocalForm.Browser.TextVisible = false;
-	worldCatLocalForm.Browser.WebBrowser.ScriptErrorsSuppressed = true;
-	
+	worldCatLocalForm.Browser.TextVisible = false;	
 
 	-- Since we didn't create a ribbon explicitly before creating our browser, it will have created one using the name we passed the CreateBrowser method.  We can retrieve that one and add our buttons to it.
-	worldCatLocalForm.RibbonPage = worldCatLocalForm.Form:GetRibbonPage("Shipments");
+	worldCatLocalForm.RibbonPage = worldCatLocalForm.Form:GetRibbonPage("WorldCat Local Search");
 
 	-- Create the search buttons
 	local button = nil;
