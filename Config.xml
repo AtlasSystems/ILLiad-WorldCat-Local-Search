@@ -1,7 +1,7 @@
 <Configuration>
 	<Name>WorldCat Local Search</Name>
 	<Author>Atlas Systems, Inc.</Author>
-	<Version>1.3.0</Version>
+	<Version>1.4.0</Version>
 	<Active>true</Active>
 
 	<Description>Performs a WorldCat search using a requests title, isxn or oclc number.</Description>
@@ -11,13 +11,13 @@
 	</Forms>	
 
 	<Settings>
-		<Setting name='AutoSearch' value='true' type='boolean'>
+		<Setting name="AutoSearch" value="true" type="Boolean">
 			<Description>Defines whether the search should be automatically performed when the form opens.</Description>
 		</Setting>
-		<Setting name="WorldCatURL" value="http://uwashington.worldcat.org" type="string">
+		<Setting name="WorldCatURL" value="https://worldcat.org" type="string">
 			<Description>The URL for WorldCat Local. Do not include a trailing slash.</Description>
 		</Setting>
-		<Setting name="SearchPriority" value="Title,ISXN, OCLC" type="string">
+		<Setting name="SearchPriority" value="Title,ISXN,OCLC" type="string">
 			<Description>Defines what order priority should be used when attempting to find a field to search by when using the auto search feature. Allowed fields are title, isxn, and oclc.</Description>
 		</Setting>
 	</Settings>
