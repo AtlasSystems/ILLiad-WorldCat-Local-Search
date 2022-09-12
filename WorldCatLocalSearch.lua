@@ -148,7 +148,7 @@ function SearchOCLC()
 end
 
 function Search(searchTerm)
-	worldCatLocalForm.Browser:Navigate(GetSetting("WorldCatURL").."/search?qt=wc_org_uwashington&scope=0&oldscope=&wcsbtn2w=Search&q="..AtlasHelpers.UrlEncode(searchTerm));
+	worldCatLocalForm.Browser:Navigate(GetSetting("WorldCatURL").."/search?scope=0&oldscope=&wcsbtn2w=Search&q="..AtlasHelpers.UrlEncode(searchTerm));
 end
 
 
