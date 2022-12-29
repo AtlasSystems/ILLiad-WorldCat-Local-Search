@@ -23,7 +23,7 @@ function Init()
 	worldCatLocalForm.Form = interfaceMngr:CreateForm("WorldCat Local Search", "Script");
 
 	-- Add a browser
-	worldCatLocalForm.Browser = worldCatLocalForm.Form:CreateBrowser("WorldCat Local Search", "WorldCat Local Search Browser", "WorldCat Local Search", "Chromium");
+	worldCatLocalForm.Browser = worldCatLocalForm.Form:CreateBrowser("WorldCat Local Search", "WorldCat Local Search Browser", "WorldCat Local Search", "WebView2");
 
 	-- Hide the text label
 	worldCatLocalForm.Browser.TextVisible = false;	
