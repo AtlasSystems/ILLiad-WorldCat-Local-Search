@@ -5,6 +5,7 @@
 The WorldCat Local Search Addon allows you to search Articles and Loans using a variety of criteria (title, ISSN, OCLC, etc.) and automatically shows search results.
 
 ## Prerequisites
+ILLiad 9.3 and above is required for this addon to function.
 This addon requires the Atlas Helpers Addon Library to be present in the Addons folder. If you do not have it, it can be downloaded at https://atlas-sys.atlassian.net/wiki/spaces/ILLiadAddons/pages/633405444/Atlas+Helpers+Addon+Library
 
 ## Settings
