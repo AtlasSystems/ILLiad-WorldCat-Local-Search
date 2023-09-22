@@ -16,27 +16,47 @@ worldCatLocalForm.Form = nil;
 worldCatLocalForm.Browser = nil;
 worldCatLocalForm.RibbonPage = nil;
 
+local importButton = nil;
+local pageWatcherEnabled = false;
+local pageWatcherTimer = nil;
+
+luanet.load_assembly("System");
 luanet.load_assembly("System.Windows.Forms");
 luanet.load_assembly("log4net");
 
+local types = {};
+types["System.Timers.Timer"] = luanet.import_type("System.Timers.Timer");
+
 local productName = luanet.import_type("System.Windows.Forms.Application").ProductName;
+local sourceTable = nil;
 local log = luanet.import_type("log4net.LogManager").GetLogger("AtlasSystems.Addons.WorldCatLocalSearch");
 
-require "Atlas.AtlasHelpers";
+local browserType;
+if AddonInfo.Browsers and AddonInfo.Browsers.WebView2 and AddonInfo.Browsers.WebView2 then
+	browserType = "WebView2";
+else
+	browserType = "Chromium";
+end
+
+require "AtlasHelpers";
 
 function Init()
 	interfaceMngr = GetInterfaceManager();
+
+	if productName == "ILLiad" then
+		sourceTable = "Transaction";
+		productName = productName .. GetFieldValue("Transaction", "RequestType");
+	elseif productName == "Ares" then
+		sourceTable = "Item";
+	else
+		log:ErrorFormat("This addon is not supported for {0}. Halting addon execution.", productName);
+		return;
+	end
 
 	-- Create a form
 	worldCatLocalForm.Form = interfaceMngr:CreateForm("WorldCat Local Search", "Script");
 
 	-- Add a browser
-	local browserType;
-	if AddonInfo.Browsers and AddonInfo.Browsers.WebView2 and AddonInfo.Browsers.WebView2 then
-		browserType = "WebView2";
-	else
-		browserType = "Chromium";
-	end
 	worldCatLocalForm.Browser = worldCatLocalForm.Form:CreateBrowser("WorldCat Local Search",
 		"WorldCat Local Search Browser", "WorldCat Local Search", browserType);
 
@@ -49,38 +69,72 @@ function Init()
 	-- Create the search buttons
 	local button = nil;
 	button = worldCatLocalForm.RibbonPage:CreateButton("Search Title",
-		GetClientImage(DataMapping.Icons.TitleSearch[productName]), "SearchTitle", "WorldCat Local");
+		GetClientImage(DataMapping.Icons.TitleSearch[productName]), "SearchTitle", "Search Options");
 	if (CanSearchTitle() ~= true) then
 		button.BarButton.Enabled = false;
 	end
 
 	button = worldCatLocalForm.RibbonPage:CreateButton("Search ISXN",
-		GetClientImage(DataMapping.Icons.IsxnSearch[productName]), "SearchISXN", "WorldCat Local");
+		GetClientImage(DataMapping.Icons.IsxnSearch[productName]), "SearchISXN", "Search Options");
 	if (CanSearchISXN() ~= true) then
 		button.BarButton.Enabled = false;
 	end
 
 	button = worldCatLocalForm.RibbonPage:CreateButton("Search OCLC",
-		GetClientImage(DataMapping.Icons.OclcNumberSearch[productName]), "SearchOCLC", "WorldCat Local");
+		GetClientImage(DataMapping.Icons.OclcNumberSearch[productName]), "SearchOCLC", "Search Options");
 	if (CanSearchOCLC() ~= true) then
 		button.BarButton.Enabled = false;
 	end
+	
+	importButton = worldCatLocalForm.RibbonPage:CreateButton("Import", 
+		GetClientImage(DataMapping.Icons.Import[productName]), "BibImport", "Import");
+	importButton.BarButton.Enabled = false;
 
 	-- After we add all of our buttons and form elements, we can show the form.
 	worldCatLocalForm.Form:Show();
+
+	OnFormClosing:RegisterFormClosingEvent(interfaceMngr, StopPageWatcherTimer);
 
 	if settings.AutoSearch then
 		AutoSearch();
 	end
 end
 
+function StartPageWatcherTimer()
+    if not pageWatcherEnabled then
+        log:Debug("Starting record page watcher.");
+
+		pageWatcherTimer = types["System.Timers.Timer"](3000);
+		pageWatcherTimer:add_Elapsed(IsRecordPage);
+		pageWatcherTimer:Start();
+
+        pageWatcherEnabled = true;
+    end
+end
+
+function StopPageWatcherTimer()
+    if pageWatcherEnabled then
+        log:Debug("Stopping record page watcher.");
+        pageWatcherTimer:Stop();
+		pageWatcherTimer:Dispose();
+
+        pageWatcherEnabled = false;
+    end
+end
+
 function CanSearchTitle()
-	return GetTitle() ~= "";
+	local value = GetFieldValue(sourceTable, DataMapping.SourceFields.Title[productName]);
+
+	if value and value ~= "" then
+		return true;
+	end
+
+	return false;
 end
 
 function CanSearchOCLC()
-	local value = GetFieldValue(DataMapping.SourceTables[productName], DataMapping.SourceFields.OclcNumber[productName]);
-	if value ~= nil and value ~= "" then
+	local value = GetFieldValue(sourceTable, DataMapping.SourceFields.OclcNumber[productName]);
+	if value and value ~= "" then
 		return true;
 	end
 
@@ -88,36 +142,12 @@ function CanSearchOCLC()
 end
 
 function CanSearchISXN()
-	local value = GetFieldValue(DataMapping.SourceTables[productName], DataMapping.SourceFields.Isxn[productName]);
-	if value ~= nil and value ~= "" and GetIsxnType(value) ~= "invalid" then
+	local value = GetFieldValue(sourceTable, DataMapping.SourceFields.Isxn[productName]);
+	if value and value ~= "" and GetIsxnType(value) ~= "invalid" then
 		return true;
 	end
 
 	return false;
-end
-
-function GetTitle()
-	local title;
-
-	if productName == "Ares" then
-		if GetFieldValue("Item", "ItemType") == "Serial" then
-			title = GetFieldValue("Item", DataMapping.SourceFields.SerialOrArticleTitle[productName]);
-		else
-			title = GetFieldValue("Item", DataMapping.SourceFields.MonographOrLoanTitle[productName]);
-		end
-	elseif productName == "ILLiad" then
-		if GetFieldValue("Transaction", "RequestType") == "Article" then
-			title = GetFieldValue("Transaction", DataMapping.SourceFields.SerialOrArticleTitle[productName]);
-		else
-			title = GetFieldValue("Transaction", DataMapping.SourceFields.MonographOrLoanTitle[productName]);
-		end
-	end
-
-	if title == nil then
-		title = "";
-	end
-
-	return title;
 end
 
 function AutoSearch()
@@ -142,11 +172,11 @@ function AutoSearch()
 end
 
 function SearchTitle()
-	Search("ti:" .. GetTitle());
+	Search("ti:" .. GetFieldValue(sourceTable, DataMapping.SourceFields.Title[productName]));
 end
 
 function SearchISXN()
-	local value = GetFieldValue(DataMapping.SourceTables[productName], DataMapping.SourceFields.Isxn[productName]);
+	local value = GetFieldValue(sourceTable, DataMapping.SourceFields.Isxn[productName]);
 	local isxnType = GetIsxnType(value);
 	local prefix;
 
@@ -176,9 +206,9 @@ function GetIsxnType(isxn)
 end
 
 function SearchOCLC()
-	local value = GetFieldValue(DataMapping.SourceTables[productName], DataMapping.SourceFields.OclcNumber[productName]);
+	local value = GetFieldValue(sourceTable, DataMapping.SourceFields.OclcNumber[productName]);
 
-	if value == nil then
+	if not value then
 		value = "";
 	end
 
@@ -188,4 +218,108 @@ end
 function Search(searchTerm)
 	worldCatLocalForm.Browser:Navigate(settings.WorldcatURL ..
 	"/search?scope=0&oldscope=&wcsbtn2w=Search&q=" .. AtlasHelpers.UrlEncode(searchTerm));
+
+	StartPageWatcherTimer();
+end
+
+function IsRecordPage()
+	if worldCatLocalForm.Form and worldCatLocalForm.Browser then
+		local oclcNumber = (worldCatLocalForm.Browser.Address):match("title/(%d+)");
+
+		if not oclcNumber then
+			log:Debug("Not a record page.");
+			importButton.BarButton.Enabled = false;
+			return;
+		end
+
+		local recordPageLoadedScript = [[(function(oclcNumber){
+			if (document.getElementById("oclcnumber-" + oclcNumber) != null){
+				return "True";
+			}
+			return "False";
+		})]];
+
+		local recordPageLoaded = worldCatLocalForm.Browser:EvaluateScript(recordPageLoadedScript, {oclcNumber}).Result == "True";
+
+		if recordPageLoaded then
+			log:Debug("Record page found.");
+			importButton.BarButton.Enabled = true;
+		else
+			log:Debug("Not a record page.");
+			importButton.BarButton.Enabled = false;
+		end
+	end
+end
+
+function BibImport()
+	local oclcNumber = (worldCatLocalForm.Browser.Address):match("title/(%d+)");
+	
+	log:DebugFormat("Importing bib info for OCLC# {0}", oclcNumber);
+
+	local getImportValuesScript = [[(function(oclcNumber){
+		var title = "";
+		var titleText = document.getElementsByTagName("title")[0].innerText;
+		title = titleText.match(/[^|]+/);
+		
+		var author = "";
+		var aCollection = document.getElementsByTagName("a");
+		for (let a of aCollection){
+			if (a.getAttribute("data-testid") == "author-" + oclcNumber + "-0"){
+				author = a.innerText;
+			}
+		}
+		
+		var isxn = "";
+		var spanCollection = document.getElementsByTagName("span");
+		for (let span of spanCollection){
+			var isxnPattern = new RegExp("is.n\-" + oclcNumber)
+			if (isxnPattern.test(span.getAttribute("aria-labelledby"))){
+				isxn = (span.innerText).match(/[x\d-]+/i)[0];
+			}
+		}
+		
+		var publisherInfo = "";
+		for (let span of spanCollection){
+			if (span.getAttribute("data-testid") == "publisher-" + oclcNumber){
+				publisherInfo = span.innerText;
+			}
+		}
+		
+		return title + "||" + author + "||" + isxn + "||" + publisherInfo;
+	})]];
+
+	local importValues = worldCatLocalForm.Browser:EvaluateScript(getImportValuesScript, {oclcNumber}).Result;
+
+	local title, author, isxn, publisherInfo = importValues:match("(.+)||(.+)||(.+)||(.+)");
+	local publisher = Trim(publisherInfo:match("(.+),"));
+	local publicationPlace = Trim(publisherInfo:match(",(.+),"));
+	local publicationDate = Trim(publisherInfo:match("%d+%w+$"));
+
+	SetValueIfNotNil(title, "Title");
+	SetValueIfNotNil(author, "Author");
+	SetValueIfNotNil(isxn, "Isxn");
+	SetValueIfNotNil(publisher, "Publisher");
+	SetValueIfNotNil(publicationPlace, "PublicationPlace");
+	SetValueIfNotNil(publicationDate, "PublicationDate");
+	SetValueIfNotNil(oclcNumber, "OclcNumber");
+
+	if productName:find("ILLiad") then
+		ExecuteCommand("SwitchTab", "Detail");
+	elseif productName == "Ares" then
+		ExecuteCommand("SwitchTab", {"Details"});
+	end
+end
+
+function SetValueIfNotNil(value, field)
+	if value then
+		SetFieldValue(sourceTable, DataMapping.ImportFields[field][productName], value);
+	end
+end
+
+function Trim(str)
+	if not str then
+		return nil;
+	else
+		return str:match("^%s*(.-)%s*$");
+	end
 end
