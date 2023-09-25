@@ -2,7 +2,7 @@
 
 ## Summary
 
-The WorldCat Local Search Addon allows you to search Articles and Loans using a variety of criteria (title, ISSN, OCLC, etc.) and automatically shows search results.
+The WorldCat Local Search Addon allows you to search Articles and Loans using a variety of criteria (title, ISSN, OCLC, etc.) and automatically shows search results. When on an item page, bibliographic data can be imported.
 
 ## Prerequisites
 ILLiad 9.2 and above is required for this addon to function. In ILLiad 9.2.4 or Ares 5.0.9 and above it will use the WebView2 embedded browser rather than Chromium.
@@ -23,4 +23,4 @@ Defines what order priority should be used when attempting to find a field to se
 
 ## DataMapping
 
-Icons, source fields, and source tables can be customized for each product in the DataMapping.lua file. Changing the source tables is not recommended.
+Icons, source fields, and import fields can be customized for each product in the DataMapping.lua file.

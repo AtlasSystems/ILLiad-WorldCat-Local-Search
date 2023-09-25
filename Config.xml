@@ -1,7 +1,7 @@
 <Configuration>
 	<Name>WorldCat Local Search</Name>
 	<Author>Atlas Systems, Inc.</Author>
-	<Version>1.5.2</Version>
+	<Version>1.5.3</Version>
 	<Active>true</Active>
 
 	<Description>Performs a WorldCat search using a requests title, isxn or oclc number.</Description>
@@ -26,5 +26,6 @@
 	<Files>
 		<File>WorldCatLocalSearch.lua</File>
 		<File>DataMapping.lua</File>
+		<File>OnFormClosing.elf</File>
 	</Files>
 </Configuration>

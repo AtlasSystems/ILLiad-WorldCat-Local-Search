@@ -1,16 +1,21 @@
 DataMapping = {};
 DataMapping.Icons = {};
-DataMapping.SourceTables = {};
 DataMapping.SourceFields = {};
+DataMapping.ImportFields = {};
 
-DataMapping.Icons["TitleSearch"] = { Ares = "Search32", ILLiad = "Search32" };
-DataMapping.Icons["IsxnSearch"] = { Ares = "Search32", ILLiad = "Search32" };
-DataMapping.Icons["OclcNumberSearch"] = { Ares = "Search32", ILLiad = "Search32" };
+DataMapping.Icons["TitleSearch"] = { Ares = "Search32", ILLiadLoan = "Search32", ILLiadArticle = "Search32" };
+DataMapping.Icons["IsxnSearch"] = { Ares = "Search32", ILLiadLoan = "Search32", ILLiadArticle = "Search32" };
+DataMapping.Icons["OclcNumberSearch"] = { Ares = "Search32", ILLiadLoan = "Search32", ILLiadArticle = "Search32" };
+DataMapping.Icons["Import"] = { Ares = "Import32", ILLiadLoan = "Import32", ILLiadArticle = "Import32" };
 
-DataMapping.SourceTables["Ares"] = "Item";
-DataMapping.SourceTables["ILLiad"] = "Transaction";
+DataMapping.SourceFields["Title"] = { Ares = "Title", ILLiadLoan = "LoanTitle", ILLiadArticle = "PhotoJournalTitle" };
+DataMapping.SourceFields["Isxn"] = { Ares = "ISXN", ILLiadLoan = "ISSN", ILLiadArticle = "ISSN" };
+DataMapping.SourceFields["OclcNumber"] = { Ares = "ESPNumber", ILLiadLoan = "ESPNumber", ILLiadArticle = "ESPNumber" };
 
-DataMapping.SourceFields["MonographOrLoanTitle"] = { Ares = "Title", ILLiad = "LoanTitle" };
-DataMapping.SourceFields["SerialOrArticleTitle"] = { Ares = "Title", ILLiad = "PhotoJournalTitle" };
-DataMapping.SourceFields["Isxn"] = { Ares = "ISXN", ILLiad = "ISSN" };
-DataMapping.SourceFields["OclcNumber"] = { Ares = "ESPNumber", ILLiad = "ESPNumber" };
+DataMapping.ImportFields["Title"] = { Ares = "Title", ILLiadLoan = "LoanTitle", ILLiadArticle = "PhotoJournalTitle" };
+DataMapping.ImportFields["Isxn"] = { Ares = "ISXN", ILLiadLoan = "ISSN", ILLiadArticle = "ISSN"};
+DataMapping.ImportFields["Author"] = { Ares = "Author", ILLiadLoan = "LoanAuthor", ILLiadArticle = "ItemAuthor" };
+DataMapping.ImportFields["Publisher"] = { Ares = "Publisher", ILLiadLoan = "LoanPublisher", ILLiadArticle = "PhotoItemPublisher" };
+DataMapping.ImportFields["PublicationPlace"] = { Ares = "PubPlace", ILLiadLoan = "LoanPlace", ILLiadArticle = "PhotoItemPlace" };
+DataMapping.ImportFields["PublicationDate"] = { Ares = "PubDate", ILLiadLoan = "LoanDate", ILLiadArticle = "PhotoJournalYear" };
+DataMapping.ImportFields["OclcNumber"] = { Ares = "ESPNumber", ILLiadLoan = "ESPNumber", ILLiadArticle = "ESPNumber" };
